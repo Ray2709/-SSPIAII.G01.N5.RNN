@@ -65,3 +65,25 @@ target_vectorization.adapt(train_spanish_texts)
 # 
 vocab_size = 15000
 sequence_length = 20
+
+batch_size = 64
+
+def format_dataset(eng, spa):
+    eng = source_vectorization(eng)
+    spa = target_vectorization(spa)
+    return ({
+        "english": eng,
+        "spanish": spa[:, :-1],
+    }, spa[:, 1:])
+
+def make_dataset(pairs):
+    eng_texts, spa_texts = zip(*pairs)
+    eng_texts = list(eng_texts)
+    spa_texts = list(spa_texts)
+    dataset = tf.data.Dataset.from_tensor_slices((eng_texts, spa_texts))
+    dataset = dataset.batch(batch_size)
+    dataset = dataset.map(format_dataset, num_parallel_calls=4)
+    return dataset.shuffle(2048).prefetch(16).cache()
+
+train_ds = make_dataset(train_pairs)
+val_ds = make_dataset(val_pairs)
