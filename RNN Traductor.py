@@ -46,7 +46,22 @@ def custom_standardization(input_string):
     return tf.strings.regex_replace(
         lowercase, f"[{re.escape(strip_chars)}]",""
     )
-
+#
+source_vectorization = TextVectorization(
+    max_tokens=vocab_size,
+    output_mode="int",
+    output_sequence_length=sequence_length,
+)
+target_vectorization = TextVectorization(
+    max_tokens=vocab_size,
+    output_mode="int",
+    output_sequence_length=sequence_length + 1,
+    standardize=custom_standardization,
+)
+train_english_texts = [pair[0] for pair in train_pairs]
+train_spanish_texts = [pair[1] for pair in train_pairs]
+source_vectorization.adapt(train_english_texts)
+target_vectorization.adapt(train_spanish_texts)
 # 
 vocab_size = 15000
 sequence_length = 20
